@@ -8,7 +8,7 @@ This started out as a project to mess around with some VHDL; however turned in a
 The VHDL is 100% compatible with XeniumOS, which is a Cromwell based bootloader made by TeamXodus. This allows loading user BIOS binaries and some basic Xbox tools (EEPROM Backup/modification, Hard drive Rebuilding, Locking, Unlocking).  
   
 The VHDL written by Team Xodus was never released and the CPLD is read protected so it is not trivial to extract the bitstream.
-My own VHDL is probably quite similar to what Team Xodus produced for the Xenium Modchip but I have independently reverse engineered the behavioral design on the CPLD. (There was no bypassing of the protection features of a genuine Xenium.) Therefore I have named this project **OpenXenium**. *An open source recreation of the Xenium CPLD released under GPL which documents the internal workings by means of open source VHDL of the Xenium Modchip*
+My own VHDL is probably quite similar to what Team Xodus produced for the Xenium Modchip but I have independently reverse engineered the behavioral design on the CPLD. (There was no bypassing of the protection features of a genuine Xenium.) Therefore I have named this project **OpenXenium**. *An open source recreation of the Xenium CPLD released under GPL which documents the internal workings by means of open source VHDL of the Xenium Modchip*.
 
 
 ## Supported Features

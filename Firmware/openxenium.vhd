@@ -131,8 +131,8 @@ ARCHITECTURE Behavioral OF openxenium IS
    --IO WRITE/READ REGISTERS SIGNALS
    CONSTANT XENIUM_00EE : STD_LOGIC_VECTOR (7 DOWNTO 0) := x"EE"; --CONSTANT (RGB LED Control Register)
    CONSTANT XENIUM_00EF : STD_LOGIC_VECTOR (7 DOWNTO 0) := x"EF"; --CONSTANT (SPI and Banking Control Register)
-   SIGNAL REG_00EE : STD_LOGIC_VECTOR (7 DOWNTO 0) := "00000001"; --X,X,X,X X,B,G,R. Red is default LED colour
-   SIGNAL REG_00EF : STD_LOGIC_VECTOR (7 DOWNTO 0) := "00000001"; --X,SCK,CS,MOSI, BANKCONTROL[3:0]. Bank 1 is default.
+   SIGNAL REG_00EE_WRITE : STD_LOGIC_VECTOR (7 DOWNTO 0) := "00000001"; --X,X,X,X X,B,G,R. Red is default LED colour
+   SIGNAL REG_00EF_WRITE : STD_LOGIC_VECTOR (7 DOWNTO 0) := "00000001"; --X,SCK,CS,MOSI, BANKCONTROL[3:0]. Bank 1 is default.
    SIGNAL REG_00EF_READ : STD_LOGIC_VECTOR (7 DOWNTO 0) := "01010101"; --Input signal
    SIGNAL REG_00EE_READ : STD_LOGIC_VECTOR (7 DOWNTO 0) := "01010101"; --Input signal
    SIGNAL READBUFFER : STD_LOGIC_VECTOR (7 DOWNTO 0); --I buffer Memory and IO reads to reduce pin to pin delay in CPLD which caused issues
@@ -151,12 +151,12 @@ ARCHITECTURE Behavioral OF openxenium IS
 BEGIN
    --ASSIGN THE IO TO SIGNALS BASED ON REQUIRED BEHAVIOUR
    --HEADER_CS <= REG_00EF(5);
-   HEADER_SCK <= REG_00EF(6);
-   HEADER_MOSI <= REG_00EF(4);
+   HEADER_SCK <= REG_00EF_WRITE(6);
+   HEADER_MOSI <= REG_00EF_WRITE(4);
 
-   HEADER_LED_R <= REG_00EE(0);
-   HEADER_LED_G <= REG_00EE(1);
-   HEADER_LED_B <= REG_00EE(2);
+   HEADER_LED_R <= REG_00EE_WRITE(0);
+   HEADER_LED_G <= REG_00EE_WRITE(1);
+   HEADER_LED_B <= REG_00EE_WRITE(2);
 
    FLASH_ADDRESS <= LPC_ADDRESS;
 
@@ -203,7 +203,7 @@ BEGIN
                 NOT D0LEVEL; 
  
    --RECOVERY SWITCH POSITION (0=ACTIVE), X, PIN_4, PIN_1, BANK[3:0]
-   REG_00EF_READ <= XENIUM_RECOVERY & '0' & HEADER_4 & HEADER_1 & REG_00EF(3 DOWNTO 0);
+   REG_00EF_READ <= XENIUM_RECOVERY & '0' & HEADER_4 & HEADER_1 & REG_00EF_WRITE(3 DOWNTO 0);
 
    PROCESS (LPC_CLK, LPC_RST) BEGIN
 
@@ -217,7 +217,7 @@ BEGIN
       --If the recovery jumper is set, it will set the banking register to Bank ten on boot.
       --Forcing it to boot the recovery bios.
       IF XENIUM_RECOVERY = '0' AND TSOPBOOT = '0' THEN
-         REG_00EF(3 DOWNTO 0) <= "1010";
+         REG_00EF_WRITE(3 DOWNTO 0) <= "1010";
       END IF;
  
    ELSIF (rising_edge(LPC_CLK)) THEN 
@@ -254,7 +254,7 @@ BEGIN
             ELSIF COUNT = 4 THEN
                LPC_ADDRESS(19 DOWNTO 16) <= LPC_LAD;
                --BANK CONTROL
-               CASE REG_00EF(3 DOWNTO 0) IS
+               CASE REG_00EF_WRITE(3 DOWNTO 0) IS
                   WHEN "0001" => 
                      LPC_ADDRESS(20 DOWNTO 18) <= "110"; --256kb bank
                   WHEN "0010" => 
@@ -300,18 +300,18 @@ BEGIN
             --MEMORY OR IO WRITES. These all happen lower nibble first. (Refer to Intel LPC spec)
          WHEN WRITE_DATA0 => 
             IF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
-               REG_00EE(3 DOWNTO 0) <= LPC_LAD;
+               REG_00EE_WRITE(3 DOWNTO 0) <= LPC_LAD;
             ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
-               REG_00EF(3 DOWNTO 0) <= LPC_LAD;
+               REG_00EF_WRITE(3 DOWNTO 0) <= LPC_LAD;
             ELSIF CYCLE_TYPE = MEM_WRITE THEN
                sFLASH_DQ(3 DOWNTO 0) <= LPC_LAD;
             END IF;
             LPC_CURRENT_STATE <= WRITE_DATA1;
          WHEN WRITE_DATA1 => 
             IF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
-               REG_00EE(7 DOWNTO 4) <= LPC_LAD;
+               REG_00EE_WRITE(7 DOWNTO 4) <= LPC_LAD;
             ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
-               REG_00EF(7 DOWNTO 4) <= LPC_LAD;
+               REG_00EF_WRITE(7 DOWNTO 4) <= LPC_LAD;
             ELSIF CYCLE_TYPE = MEM_WRITE THEN
                sFLASH_DQ(7 DOWNTO 4) <= LPC_LAD;
             END IF;
@@ -329,37 +329,27 @@ BEGIN
             LPC_CURRENT_STATE <= TAR2;
          WHEN TAR2 => 
             LPC_CURRENT_STATE <= SYNCING;
-            COUNT <= 4;
-         WHEN SYNCING => 
-            --Sync for 4 clocks to ensure sufficient time for
-            --flash memory
-            IF COUNT = 4 THEN
-               COUNT <= 3;
-            ELSIF COUNT = 3 THEN
-               COUNT <= 2; 
-            ELSIF COUNT = 2 THEN
-               COUNT <= 1;
-            ELSIF COUNT = 1 THEN
-               COUNT <= 0;
-            ELSE
-               LPC_CURRENT_STATE <= SYNC_COMPLETE;
-            END IF;
- 
-         WHEN SYNC_COMPLETE => 
-            IF CYCLE_TYPE = MEM_READ THEN
-               READBUFFER <= FLASH_DQ;
-               LPC_CURRENT_STATE <= READ_DATA0;
-            ELSIF CYCLE_TYPE = IO_READ THEN
-               --Buffer memory and IO reads during Sync.
-               --This improved timing for the data output states helping reliability.
-               IF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
-                  READBUFFER <= REG_00EF_READ;
-               ELSIF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
-                  READBUFFER <= REG_00EE_READ;
-               ELSE
-                  --Unsupported registers should return 0xFF
-                  READBUFFER <= "11111111";
+            COUNT <= 6;
+         WHEN SYNCING =>
+            COUNT <= COUNT - 1;    
+            --Buffer IO reads during syncing. Helps output timings
+            IF COUNT = 1 THEN
+               IF CYCLE_TYPE = MEM_READ THEN
+                  READBUFFER <= FLASH_DQ;
+               ELSIF CYCLE_TYPE = IO_READ THEN
+                  IF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
+                     READBUFFER <= REG_00EF_READ;
+                  ELSIF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
+                     READBUFFER <= REG_00EE_READ;
+                  ELSE
+                     READBUFFER <= "11111111";
+                  END IF;
                END IF;
+           ELSIF COUNT = 0 THEN
+              LPC_CURRENT_STATE <= SYNC_COMPLETE;
+           END IF;
+         WHEN SYNC_COMPLETE => 
+            IF CYCLE_TYPE = MEM_READ OR CYCLE_TYPE = IO_READ THEN
                LPC_CURRENT_STATE <= READ_DATA0;
             ELSE
                LPC_CURRENT_STATE <= TAR_EXIT;

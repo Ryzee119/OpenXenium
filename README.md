@@ -10,6 +10,7 @@ The VHDL is 100% compatible with XeniumOS, which is a Cromwell based bootloader 
 The VHDL written by Team Xodus was never released and the CPLD is read protected so it is not trivial to extract the bitstream.
 My own VHDL is probably quite similar to what Team Xodus produced for the Xenium Modchip but I have independently reverse engineered the behavioral design on the CPLD. (There was no bypassing of the protection features of a genuine Xenium.) Therefore I have named this project **OpenXenium**. *An open source recreation of the Xenium CPLD released under GPL which documents the internal workings by means of open source VHDL of the Xenium Modchip*.
 
+I do a quick run through of the build process here: https://youtu.be/P6YYViKby74
 
 ## Supported Features
 The VHDL implements the following LPC transactions:

@@ -17,10 +17,10 @@
   <files>
     <file xil_pn:name="openxenium.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="1"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="2"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="1"/>
     </file>
     <file xil_pn:name="openxenium.ucf" xil_pn:type="FILE_UCF">
-      <association xil_pn:name="Implementation" xil_pn:seqID="1"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
   </files>
 
@@ -29,8 +29,8 @@
     <property xil_pn:name="Allow Unmatched LOC Constraints" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Allow Unmatched Timing Group Constraints" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Analysis Effort Level" xil_pn:value="Standard" xil_pn:valueState="default"/>
-    <property xil_pn:name="Auto Implementation Compile Order" xil_pn:value="false" xil_pn:valueState="non-default"/>
-    <property xil_pn:name="Auto Implementation Top" xil_pn:value="false" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Auto Implementation Compile Order" xil_pn:value="true" xil_pn:valueState="default"/>
+    <property xil_pn:name="Auto Implementation Top" xil_pn:value="true" xil_pn:valueState="default"/>
     <property xil_pn:name="Automatically Insert glbl Module in the Netlist" xil_pn:value="true" xil_pn:valueState="default"/>
     <property xil_pn:name="Autosignature Generation" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Bring Out Global Set/Reset Net as a Port" xil_pn:value="false" xil_pn:valueState="default"/>
@@ -40,7 +40,7 @@
     <property xil_pn:name="Case Implementation Style" xil_pn:value="None" xil_pn:valueState="default"/>
     <property xil_pn:name="Clock Enable" xil_pn:value="true" xil_pn:valueState="default"/>
     <property xil_pn:name="Collapsing Input Limit (2-54)" xil_pn:value="54" xil_pn:valueState="default"/>
-    <property xil_pn:name="Collapsing Pterm Limit (1-90)" xil_pn:value="25" xil_pn:valueState="default"/>
+    <property xil_pn:name="Collapsing Pterm Limit (1-90)" xil_pn:value="50" xil_pn:valueState="default"/>
     <property xil_pn:name="Compile CPLD Simulation Library" xil_pn:value="true" xil_pn:valueState="default"/>
     <property xil_pn:name="Compile SIMPRIM (Timing) Simulation Library" xil_pn:value="true" xil_pn:valueState="default"/>
     <property xil_pn:name="Compile UNISIM (Functional) Simulation Library" xil_pn:value="true" xil_pn:valueState="default"/>
@@ -77,7 +77,7 @@
     <property xil_pn:name="Hierarchy Separator" xil_pn:value="/" xil_pn:valueState="default"/>
     <property xil_pn:name="I/O Pin Termination" xil_pn:value="Keeper" xil_pn:valueState="default"/>
     <property xil_pn:name="ISim UUT Instance Name" xil_pn:value="UUT" xil_pn:valueState="default"/>
-    <property xil_pn:name="Implementation Template" xil_pn:value="Optimize Balance" xil_pn:valueState="default"/>
+    <property xil_pn:name="Implementation Template" xil_pn:value="Optimize Speed" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Implementation Top" xil_pn:value="Architecture|openxenium|Behavioral" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Implementation Top File" xil_pn:value="openxenium.vhd" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Implementation Top Instance Path" xil_pn:value="/openxenium" xil_pn:valueState="non-default"/>
@@ -100,14 +100,14 @@
     <property xil_pn:name="Logic Optimization" xil_pn:value="Speed" xil_pn:valueState="default"/>
     <property xil_pn:name="Macro Preserve" xil_pn:value="true" xil_pn:valueState="default"/>
     <property xil_pn:name="Macrocell Power Setting" xil_pn:value="Std" xil_pn:valueState="default"/>
-    <property xil_pn:name="Manual Implementation Compile Order" xil_pn:value="true" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Manual Implementation Compile Order" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Max Fanout" xil_pn:value="100000" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Maximum Number of Lines in Report" xil_pn:value="1000" xil_pn:valueState="default"/>
     <property xil_pn:name="Maximum Signal Name Length" xil_pn:value="20" xil_pn:valueState="default"/>
     <property xil_pn:name="Mux Extraction" xil_pn:value="Yes" xil_pn:valueState="default"/>
     <property xil_pn:name="Netlist Hierarchy" xil_pn:value="As Optimized" xil_pn:valueState="default"/>
     <property xil_pn:name="Number of Clock Buffers" xil_pn:value="4" xil_pn:valueState="default"/>
-    <property xil_pn:name="Optimization Effort" xil_pn:value="Normal" xil_pn:valueState="default"/>
+    <property xil_pn:name="Optimization Effort" xil_pn:value="High" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Optimization Goal" xil_pn:value="Speed" xil_pn:valueState="default"/>
     <property xil_pn:name="Other CPLD Fitter Command Line Options" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="Other Compiler Options" xil_pn:value="" xil_pn:valueState="default"/>
@@ -205,6 +205,7 @@
     <property xil_pn:name="WYSIWYG" xil_pn:value="None" xil_pn:valueState="default"/>
     <property xil_pn:name="Working Directory" xil_pn:value="." xil_pn:valueState="non-default"/>
     <property xil_pn:name="XOR Preserve" xil_pn:value="true" xil_pn:valueState="default"/>
+    <property xil_pn:name="iMPACT Project File" xil_pn:value="OpenXenium.ipf" xil_pn:valueState="non-default"/>
     <!--                                                                                  -->
     <!-- The following properties are for internal use only. These should not be modified.-->
     <!--                                                                                  -->

@@ -150,7 +150,7 @@ ARCHITECTURE Behavioral OF openxenium IS
 
 BEGIN
    --ASSIGN THE IO TO SIGNALS BASED ON REQUIRED BEHAVIOUR
-   --HEADER_CS <= REG_00EF(5);
+   --HEADER_CS <= REG_00EF(5); Really need to put this back in somehow. 100% full :(
    HEADER_SCK <= REG_00EF_WRITE(6);
    HEADER_MOSI <= REG_00EF_WRITE(4);
 
@@ -182,7 +182,7 @@ BEGIN
                (LPC_CURRENT_STATE = TAR1 OR
                LPC_CURRENT_STATE = TAR2 OR
                LPC_CURRENT_STATE = SYNCING) ELSE '1';
-			   
+
    --Output Enable for Flash Memory Read (Active low)
    --Output Enable must be pulled low for 50ns before data is valid for reading
    FLASH_OE <= '0' WHEN CYCLE_TYPE = MEM_READ AND
@@ -193,7 +193,7 @@ BEGIN
                LPC_CURRENT_STATE = READ_DATA0 OR
                LPC_CURRENT_STATE = READ_DATA1 OR
                LPC_CURRENT_STATE = TAR_EXIT) ELSE '1';
-			   
+
    --D0 has the following behaviour
    --Held low on boot to ensure it boots from the LPC then released when definitely booting from modchip.
    --When soldered to LFRAME it will simulate LPC transaction aborts for 1.6.
@@ -207,22 +207,15 @@ BEGIN
  
    REG_00EF_READ <= XENIUM_RECOVERY & '0' & HEADER_4 & HEADER_1 & REG_00EF_WRITE(3 DOWNTO 0);
 
-   PROCESS (LPC_CLK, LPC_RST) BEGIN
+PROCESS (LPC_CLK, LPC_RST) BEGIN
 
    IF (LPC_RST = '0') THEN
-
       --LPC_RST goes low during boot up or hard reset.
-	  --We need to set D0 only if not TSOP booting.
+      --We need to set D0 only if not TSOP booting.
       D0LEVEL <= TSOPBOOT;
       LPC_CURRENT_STATE <= WAIT_START;
       CYCLE_TYPE <= IO_READ;
- 
-      --If the recovery jumper is set, it will set the banking register to 
-      --Bank ten on boot forcing it to boot the recovery bios.
-      IF XENIUM_RECOVERY = '0' AND TSOPBOOT = '0' THEN
-         REG_00EF_WRITE(3 DOWNTO 0) <= "1010";
-      END IF;
- 
+  
    ELSIF (rising_edge(LPC_CLK)) THEN 
       CASE LPC_CURRENT_STATE IS
          WHEN WAIT_START => 
@@ -257,6 +250,10 @@ BEGIN
             ELSIF COUNT = 4 THEN
                LPC_ADDRESS(19 DOWNTO 16) <= LPC_LAD;
                --BANK CONTROL
+               -- Set recovery bank if switch is activated
+               IF XENIUM_RECOVERY = '0' AND TSOPBOOT = '0' AND D0LEVEL = '0' THEN
+                  REG_00EF_WRITE(3 DOWNTO 0) <= "1010";
+               END IF;
                CASE REG_00EF_WRITE(3 DOWNTO 0) IS
                   WHEN "0001" => 
                      LPC_ADDRESS(20 DOWNTO 18) <= "110"; --256kb bank
@@ -333,8 +330,8 @@ BEGIN
          WHEN TAR2 => 
             LPC_CURRENT_STATE <= SYNCING;
             COUNT <= 6;
-			
-		 --SYNCING STAGE
+            
+         --SYNCING STAGE
          WHEN SYNCING =>
             COUNT <= COUNT - 1;    
             --Buffer IO reads during syncing. Helps output timings

@@ -4,7 +4,7 @@
  The main reason you cant just copy a Genine Xenium is because the CPLD is read protected so I reverse engineered the whole things from scratch. 
  This was a significant effort so I ask that you read and respect the [open source license](https://github.com/Ryzee119/OpenXenium/blob/master/Firmware/LICENSE) that this is released under.
  
- * Download and install [ISE Design Suite 14.7](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/design-tools.html).
+ * Download and install [ISE Design Suite 14.7](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vivado-design-tools/archive-ise.html).
  * Check this for a Windows 10 fix [https://www.xilinx.com/support/answers/62380.html](https://www.xilinx.com/support/answers/62380.html).
  * And maybe this if you encounter other issues [https://www.xilinx.com/support/answers/68433.html](https://www.xilinx.com/support/answers/68433.html).
  * Open `OpenXenium.xise` with ISE Design Suite then *Process>Implement Top Module* to synthesize the VHDL. 

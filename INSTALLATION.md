@@ -23,7 +23,7 @@
 ![Pin header soldered in place](https://i.imgur.com/GGoMK2U.png)
 4. For a **1.6 Xbox** you will need to rebuild the LPC. This can be achieved by manually rewiring using 30AWG solid core wire, or using a LPC rebuild PCB. See below for wiring: <br> ![LPC Wiring](https://i.imgur.com/l1OtxG1.png)
 5. For a **non v1.6** Xbox connect the Xbox motherboard D0 point to the OpenXenium's D0 pad. If you decide to connect the motherboard D0 to ground directly the *Boot From TSOP* feature in XeniumOS will not work.
-6. Bridge the OpenXenium D0 pad to the nearby 1.6 solder pad on the OpenXenium PCB as per the silk screen markings. See the image below for the location of where the wire bridge should go: It is marked '1.6' on the OpenXenium PCB. <br>![Open Xenium D0 Point](https://github.com/Ryzee119/OpenXenium/blob/master/Images/lframe.png?raw=true)
+6. For a **1.6 Xbox** bridge the OpenXenium D0 pad to the nearby 1.6 solder pad on the OpenXenium PCB as per the silk screen markings. See the image below for the location of where the wire bridge should go: It is marked '1.6' on the OpenXenium PCB. <br>![Open Xenium D0 Point](https://github.com/Ryzee119/OpenXenium/blob/master/Images/lframe.png?raw=true)
 
 Example installation on a non-1.6 motherboard with the motherboard's D0 line soldered to the OpenXenium's D0 pad.
 ![OpenXenium example installation](https://github.com/Ryzee119/OpenXenium/blob/master/Images/20191018_212705.jpg?raw=true)

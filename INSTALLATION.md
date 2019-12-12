@@ -1,7 +1,7 @@
 # Installation
 
 ## Program CPLD (If building it yourself)
-1. To program the CPLD see the `Firmware` page. Some programming notes are provided below:
+1. To program the CPLD see the `Firmware` page. Some programming notes are provided below:  
 1.1 You will need a good quality JTAG programmer with the ability to parse`.svf` files. Some universal JTAG programming software is `OpenOCD` or `URJtag`. Check these for compatible programmers.  
 1.2 The JTAG connection points are located along the edge of the OpenXenium PCB and are clearly labelled on the silkscreen.  
 1.3 OpenXenium may require an external 3.3V power supply when programming. The RGB LED should be on when programming.  

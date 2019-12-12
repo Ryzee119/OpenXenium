@@ -2,21 +2,31 @@
 
 
 # Installation
-OpenXenium installation is much like every other Xbox LPC memory addon; **however if you build your own OpenXenium; the flash memory and the CPLD is blank so it won't initally boot anything (Xbox will FRAG)**. To program the CPLD see the `Firmware` page. The easiest way to program the flash memory with XeniumOS is to use `xenium-tools` with a Original Xbox console and hotswap from a working modchip to complete the first write.<br> <br>
-The target user is expected to understand the installation of a modchip already to boot the `xenium-tools` homebrew application. There is already many guides online. One such guide is the [Aladdin-XT-installation-Guide](https://circuit-board.de/forum/index.php/Attachment/72198-Aladdin-XT-installation-Guide-pdf/) which has the same principles as OpenXenium.<br><br>
-For a version 1.6 Xbox you are required to *rebuild the LPC* because the necessary PCB traces were removed by Microsoft in this revision. This can be achieved by using single core 30AWG wire manually rejoining all the points with solder, or using a community made [LPC Rebuild board](https://github.com/Kekule-OXC/OXC_LPCorrectr_v3). The latter being the recommended option for a beginner. OpenXenium pulses LFRAME for a 1.6 to prevent it being permanently forced to ground, therefore the LFRAME point can be connected to the D0 point on the OpenXenium PCB instead of ground. In this case the 1.6 pad should be bridged to D0 on the OpenXenium PCB. See install tips below.
 
-## Programming XeniumOS to OpenXenium
-1. Boot your Xbox using another bootable modchip and transfer `xenium-tools.xbe` to your xbox. You must boot the Xbox using another modchip. Booting from the onboard TSOP will prevent xenium-tools from working.
-2. Transfer over a xenium 2MB raw `flash.bin` **or** XeniumOS 2.3.1 `recovery.bin` (v2.3.1 only) to the xenium-tools directory.  `flash.bin` is full Xenium flash memory dump obtained from a Genuine Xenium device using xenium-tools (Menu option START+X). This is the recommended file to use as it contains the recovery sector which allows the recovery feature to work on an OpenXenium. 
-3. Open `xenium-tools.xbe`. The main menu looks like this <br> ![xenium-tools main menu](https://github.com/Ryzee119/OpenXenium/blob/master/Images/xenium-tools_mainmenu.png?raw=true)
-4. At the main menu, carefully remove the current modchip and replace it with an OpenXenium. Hotswapping is not ideal and so great care should be taken to not drop anything into the Xbox and triple checking pin header alignment before commiting to pushing it onto the header.
-5. Press the BACK button to confirm that xenium-tools can now detect your OpenXenium. Also press A to toggle the RGB LED. This provides some confidence that the unit is functional. If this doesn't work, confirm you have programmed the CPLD with the OpenXenium firmware and you have installed it correctly on the header.
-6. Press START+B or START+Y to program `flash.bin` or `recovery.bin` respectively to the OpenXenium.
-7. On completion is should look like something like this <br> ![xenium-tools write raw](https://github.com/Ryzee119/OpenXenium/blob/master/Images/xenium-tools_writeraw.png?raw=true)
-## OpenXenium Installation Tips
-1. The following steps assume you have an assembled OpenXenium with XeniumOS already programmed to the flash memory. The LPC header is most probably already soldered by now/1.6 LPC rebuilt if needed but here is some OpenXenium specific tips.
-2. OpenXenium has two extra header pins that purely bring the SDA and SCL pins up to the PCB for easier installation of a [spi2par2019](https://github.com/Ryzee119/spi2par2019) or access to the SMBus data lines. These are completely optional, just be mindful of the pin alignment when you install the OpenXenium onto the header though. <br>![enter image description here](https://github.com/Ryzee119/OpenXenium/blob/master/Images/lpcinstall.png?raw=true)
-4. For a **non v1.6** Xbox connect the Xbox motherboard D0 point to the OpenXenium's D0 pad. If you connect the motherboard D0 to ground directly the *Boot From TSOP* feature in XeniumOS will not work.
-5. For a **1.6 Xbox** connect the MCPX LFRAME to the OpenXenium's D0 pad, then bridge the OpenXenium D0 pad to the nearby 1.6 solder pad on the OpenXenium PCB as per the silk screen markings.<br>You can keep LFRAME connected  to ground if you wish, but it is generally accepted to not be a good long term solution. <br>![Open Xenium D0 Point](https://github.com/Ryzee119/OpenXenium/blob/master/Images/lframe.png?raw=true)
+## Program CPLD (If building it yourself)
+1. To program the CPLD see the `Firmware` page. Some programming notes are provided below:
+1.1 You will need a good quality JTAG programmer with the ability to parse`.svf` files. Some universal JTAG programming software is `OpenOCD` or `URJtag`. Check these for compatible programmers.
+1.2 The JTAG connection points are located along the edge of the OpenXenium PCB and are clearly labelled on the silkscreen.
+1.3 OpenXenium may require an external 3.3V power supply when programming. The RGB LED should be on when programming.
+1.4 The RGB LED will default to white if the CPLD is unprogrammed and will default to red once programmed.
+
+## Programming XeniumOS to OpenXenium (If building it yourself)
+1. Confirm that the CPLD is programmed as per the above section.
+2. Boot your Xbox using another bootable modchip and transfer `xenium-tools.xbe` to your xbox. You must boot the Xbox using another modchip. Booting from the onboard TSOP will prevent xenium-tools from working.
+3. Transfer over a xenium 2MB raw `flash.bin` **or** XeniumOS 2.3.1 `recovery.bin` (v2.3.1 only) to the xenium-tools directory.  `flash.bin` is full Xenium flash memory dump obtained from a Genuine Xenium device using xenium-tools (Menu option START+X). This is the recommended file to use as it contains the recovery sector which allows the recovery feature to work on an OpenXenium. 
+4. Open `xenium-tools.xbe`. The main menu looks like this <br> ![xenium-tools main menu](https://github.com/Ryzee119/OpenXenium/blob/master/Images/xenium-tools_mainmenu.png?raw=true)
+5. At the main menu, carefully remove the current modchip and replace it with an OpenXenium. Hotswapping is not ideal and so great care should be taken to not drop anything into the Xbox and triple checking pin header alignment before commiting to pushing it onto the header.
+6. Press the BACK button to confirm that xenium-tools can now detect your OpenXenium. Also press A to toggle the RGB LED. This provides some confidence that the unit is functional. If this doesn't work, confirm you have programmed the CPLD with the OpenXenium firmware and you have installed it correctly on the header.
+7. Press START+B or START+Y to program `flash.bin` or `recovery.bin` respectively to the OpenXenium.
+8. On completion is should look like something like this <br> ![xenium-tools write raw](https://github.com/Ryzee119/OpenXenium/blob/master/Images/xenium-tools_writeraw.png?raw=true)
+
+## OpenXenium Installation in Xbox
+1. The following steps assume you have an assembled OpenXenium and have programmed the CPLD and programmed XeniumOS as per the above sections.
+2. Install a 7x2 or a 6x2 pin header in the LPC port of your Xbox console.OpenXenium has two extra header pins that purely bring the SDA and SCL pins up to the PCB for easier installation of a [spi2par2019](https://github.com/Ryzee119/spi2par2019) or access to the SMBus data lines. These are completely optional, just be mindful of the pin alignment when you install the OpenXenium onto the header though. <br>![enter image description here](https://github.com/Ryzee119/OpenXenium/blob/master/Images/lpcinstall.png?raw=true)
+![Pin header soldered in place](https://i.imgur.com/GGoMK2U.png)
+4. For a **1.6 Xbox** you will need to rebuild the LPC. This can be achieved by manually rewiring using 30AWG solid core wire, or using a LPC rebuild PCB. See below for wiring: <br> ![LPC Wiring](https://i.imgur.com/l1OtxG1.png)
+5. For a **non v1.6** Xbox connect the Xbox motherboard D0 point to the OpenXenium's D0 pad. If you decide to connect the motherboard D0 to ground directly the *Boot From TSOP* feature in XeniumOS will not work.
+6. Bridge the OpenXenium D0 pad to the nearby 1.6 solder pad on the OpenXenium PCB as per the silk screen markings. See the image below for the location of where the wire bridge should go: It is marked '1.6' on the OpenXenium PCB. <br>![Open Xenium D0 Point](https://github.com/Ryzee119/OpenXenium/blob/master/Images/lframe.png?raw=true)
+
+Example installation on a non-1.6 motherboard with the motherboard's D0 line soldered to the OpenXenium's D0 pad.
 ![OpenXenium example installation](https://github.com/Ryzee119/OpenXenium/blob/master/Images/20191018_212705.jpg?raw=true)

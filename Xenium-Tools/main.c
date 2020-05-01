@@ -86,7 +86,7 @@ int main() {
                 debugPrint("Dumping Xenium to 'flash.bin'...\n\n");
                 dumpXenium(flashData);
 
-                FILE * f0 = fopen("flash.bin", "wb");
+                FILE * f0 = fopen("D:\\flash.bin", "wb");
                 if (f0 == NULL) {
                     debugPrint("Error creating file flash.bin. No files written\n");
                 } else {
@@ -114,7 +114,7 @@ int main() {
             debugPrint("DO NOT POWER OFF THE XBOX\n");
             Sleep(1000);
 
-            FILE * f0 = fopen("flash.bin", "rb");
+            FILE * f0 = fopen("D:\\flash.bin", "rb");
 
             if (f0 == NULL) {
                 debugPrint("flash.bin not found. Reboot Xbox and ensure\na 2MB flash.bin is located in the xbe directory.\n");
@@ -167,7 +167,7 @@ int main() {
             debugPrint("DO NOT POWER OFF THE XBOX\n");
             Sleep(1000);
 
-            FILE * f0 = fopen("recovery.bin", "rb");
+            FILE * f0 = fopen("D:\\recovery.bin", "rb");
 
             if (f0 == NULL) {
                 debugPrint("recovery.bin not found. Reboot Xbox and ensure\n");

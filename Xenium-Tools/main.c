@@ -23,19 +23,26 @@
 #include <hal/input.h>
 #include <hal/io.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <windows.h>
 #include <SDL.h>
-#include <stdio.h>
+
+
 
 #include "main.h"
 #include "am29lv160mt.h"
 #include "xenium.h"
 
 #define MAXRAM 0x03FFAFFF
+#define SCREEN_HEIGHT 480
+#define SCREEN_WIDTH 640
 
 //From /hal/debug.c to modify position of cursor
 extern int nextRow;
 extern int nextCol;
+
+//Get framebuffer pointer
+extern uint8_t* _fb;
 
 SDL_GameController * gamepad;
 static unsigned char * flashData;
@@ -43,7 +50,15 @@ static unsigned char * readBackBuffer;
 
 int main() {
 
-    XVideoSetMode(640, 480, 32, REFRESH_DEFAULT);
+    size_t fb_size = SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint16_t);
+    _fb = (uint8_t*)MmAllocateContiguousMemoryEx(fb_size,
+                                                 0,
+                                                 0xFFFFFFFF,
+                                                 0x1000,
+                                                 PAGE_READWRITE | PAGE_WRITECOMBINE);
+    memset(_fb, 0x00, fb_size);
+
+    XVideoSetMode(SCREEN_WIDTH, SCREEN_HEIGHT, 16, REFRESH_DEFAULT);
     SDL_Init(SDL_INIT_GAMECONTROLLER);
     gamepad = SDL_GameControllerOpen(0);
 
@@ -52,13 +67,6 @@ int main() {
     readBackBuffer = MmAllocateContiguousMemoryEx(XENIUM_FLASH_SIZE, 0, MAXRAM,
                                                   0, PAGE_READWRITE | PAGE_NOCACHE);
 
-    int initError = pb_init();
-    if (initError != 0) {
-        Sleep(2000);
-        return 1;
-    }
-
-    pb_show_debug_screen();
     drawMainMenu();
 
     //Record the bank used to get into this program. Useful when rebooting.
@@ -83,14 +91,15 @@ int main() {
                 debugPrint("Xenium device NOT detected! Something is wrong\n");
             } else {
                 memset(flashData, 0x00, XENIUM_FLASH_SIZE);
-                debugPrint("Dumping Xenium to 'flash.bin'...\n\n");
+                debugPrint("Dumping Xenium to 'flash.bin'...\n");
                 dumpXenium(flashData);
+                debugPrint("Read complete\n");
 
                 FILE * f0 = fopen("D:\\flash.bin", "wb");
                 if (f0 == NULL) {
                     debugPrint("Error creating file flash.bin. No files written\n");
                 } else {
-                    debugPrint("Writing file...\n");
+                    debugPrint("Writing file... ");
                     int chunkSize = 256;
                     for (int i = 0; i < XENIUM_FLASH_SIZE; i += chunkSize) {
                         fwrite(&flashData[i], 1, chunkSize, f0);
@@ -112,8 +121,6 @@ int main() {
 
             debugPrint("Write a raw 2MB flash dump the Xenium device\n");
             debugPrint("DO NOT POWER OFF THE XBOX\n");
-            Sleep(1000);
-
             FILE * f0 = fopen("D:\\flash.bin", "rb");
 
             if (f0 == NULL) {
@@ -124,18 +131,15 @@ int main() {
                 memset(flashData, 0x00, XENIUM_FLASH_SIZE);
                 memset(readBackBuffer, 0x00, XENIUM_FLASH_SIZE);
 
-                debugPrint("Reading flash.bin\n\n");
+                debugPrint("Reading flash.bin\n");
                 fread(flashData, 1, XENIUM_FLASH_SIZE, f0);
                 fclose(f0);
-                Sleep(2000);
-                debugPrint("Ready to flash Xenium.\nThe flash memory needs to be erased first\n");
-                debugPrint("Press BLACK to begin ERASE\n");
+                debugPrint("Ready to flash Xenium. Press BLACK to begin ERASE\n");
                 waitForButton(gamepad, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
-                debugPrint("\n\nPerforming flash memory erase. This can take up to 1 min\n\n");
-                Sleep(500);
+                debugPrint("Erasing... This can take up to 1 min\n");
                 flashFullErase();
                 writeXeniumRaw(flashData);
-                debugPrint("Write Complete. Performing verification readback\n");
+                debugPrint("Write Complete. Verifying\n");
                 dumpXenium(readBackBuffer);
 
                 //Blank the write protected sector which is on a Genuine Xenium.
@@ -178,10 +182,9 @@ int main() {
                 memset(flashData, 0xFF, XENIUM_FLASH_SIZE);
                 memset(readBackBuffer, 0x00, XENIUM_FLASH_SIZE);
 
-                debugPrint("Reading recovery.bin\n\n");
+                debugPrint("Reading recovery.bin\n");
                 fread(readBackBuffer, 1, XENIUM_SIZEOF_UPDATE, f0);
                 fclose(f0);
-                Sleep(2000);
                 //CROMWELL LOADER - Exists at offset 0x00948 in recovery.bin
                 memcpy(&flashData[0x180000], & readBackBuffer[0x00948], 0x40000);
                 //XENIUMOS PART1 - Exists at offset 0x40948 in recovery.bin
@@ -189,14 +192,13 @@ int main() {
                 //XENIUMOS PART2 - Exists at offset 0xE0948 in recovery.bin
                 memcpy(&flashData[0x1E0000], & readBackBuffer[0xE0948], 0x20000);
 
-                debugPrint("Ready to flash Xenium.\nThe flash memory needs to be erased first\n");
-                debugPrint("Press BLACK to begin ERASE\n");
+                debugPrint("Ready to flash Xenium. Press BLACK to begin ERASE\n");
                 waitForButton(gamepad, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
-                debugPrint("\n\nPerforming flash memory erase. This can take up to 1 min\n\n");
-                Sleep(500);
+
+                debugPrint("Erasing... This can take up to 1 min\n");
                 flashFullErase();
                 writeXeniumRaw(flashData);
-                debugPrint("Write Complete. Performing verification readback\n");
+                debugPrint("Write Complete. Verifying\n");
                 memset(readBackBuffer, 0x00, XENIUM_FLASH_SIZE);
                 dumpXenium(readBackBuffer);
 
@@ -335,25 +337,24 @@ void debugPrintXY(char * str, int x, int y) {
 void drawMainMenu(void) {
     debugClearScreen();
     debugPrint("Xenium Tools by Ryzee119\n");
-    debugPrint("https://github.com/Ryzee119/OpenXenium\n\n");
+    debugPrint("github.com/Ryzee119/OpenXenium\n");
     if (checkForXenium() == 1) {
         debugPrint("Xenium Detected!\n");
-        
     } else {
         debugPrint("Xenium not Detected!\n");
     }
-    debugPrint("_______________________________________________________________\n\n");
-
+    debugPrint("______________________________________________________________\n");
     debugPrint("START+X: Dump full 2MB of Xenium Flash Memory\n");
     debugPrint("START+B: Write a raw 'flash.bin' to Xenium Flash Memory\n");
-    debugPrint("START+Y: Write XOS update 'recovery.bin' to Xenium Flash Memory\n");
+    debugPrint("START+Y: Write XOS 'recovery.bin' to Xenium Flash Memory\n");
     debugPrint("A:       Cycle the RGB LED\n");
-    debugPrint("BACK:    Recheck for Xenium device\n\n");
+    debugPrint("BACK:    Recheck for Xenium device\n");
 
     debugPrint("START+BLACK: Reboot Xbox\n");
-    debugPrint("_______________________________________________________________\n");
+    debugPrint("______________________________________________________________\n");
     
-    debugPrintXY("Built with NXDK https://github.com/XboxDev/nxdk/", 25, 480 - 50 - 8); //Screen height-margins-font height
+    debugPrintXY("Built with NXDK https://github.com/XboxDev/nxdk/", 25, 
+                                                 SCREEN_HEIGHT - 50 - 16); //Screen height-margins-font height
 }
 
 unsigned char checkForXenium() {
@@ -369,16 +370,12 @@ unsigned char checkForXenium() {
     LPCmemoryRead(temp, 0x70, 8); //Couple reads just to get Xenium going
     IoOutputByte(XENIUM_REGISTER_BANKING, XENIUM_BANK_CROMWELL);
 
-    flashReset();
-
     manuf = getManufID();
     devid = getDevID();
 
-    debugPrint("Manufacturer ID %02x, device ID %02x\n", manuf, devid);
-    if ((manuf == XENIUM_MANUF_ID && devid == XENIUM_DEVICE_ID) ||
-        (manuf == XENIUM_LASTBLAST_MANUF_ID && devid == XENIUM_LASTBLAST_ID)) {
+    //debugPrint("Man ID %02x, Dev ID %02x: ", manuf, devid);
+    if (manuf == XENIUM_MANUF_ID && devid == XENIUM_DEVICE_ID){
         return 1;
-        
     } else {
         return 0;
     }
@@ -390,26 +387,25 @@ char dumpXenium(unsigned char * buffer) {
 
     for (unsigned int rawAddress = 0; rawAddress < XENIUM_FLASH_SIZE; rawAddress += chunk_size) {
         if (rawAddress == 0x000000) {
-            debugPrint("Reading bank %x\r\n", rawAddress);
+            debugPrint("Reading .");
             IoOutputByte(XENIUM_REGISTER_BANKING, XENIUM_BANK_1_1024);
             address = 0;
         } else if (rawAddress == 0x100000) {
-            debugPrint("Reading bank %x\r\n", rawAddress);
+            debugPrint(".");
             IoOutputByte(XENIUM_REGISTER_BANKING, XENIUM_BANK_XENIUMOS);
             address = 0;
         } else if (rawAddress == 0x180000) {
-            debugPrint("Reading bank %x\r\n", rawAddress);
+            debugPrint(".");
             IoOutputByte(XENIUM_REGISTER_BANKING, XENIUM_BANK_CROMWELL);
             address = 0;
         } else if (rawAddress == 0x1C0000) {
-            debugPrint("Reading bank %x\r\n", rawAddress);
+            debugPrint(".\n");
             IoOutputByte(XENIUM_REGISTER_BANKING, XENIUM_BANK_RECOVERY);
             address = 0;
         }
         LPCmemoryRead( & buffer[rawAddress], address, chunk_size);
         address += chunk_size;
     }
-    debugPrint("Read complete\r\n");
     return 0;
 }
 
@@ -418,22 +414,22 @@ void writeXeniumRaw(unsigned char * buffer) {
 
     for (unsigned int rawAddress = 0; rawAddress < XENIUM_FLASH_SIZE; rawAddress += bankSize) {
         if (rawAddress == 0x000000) {
-            debugPrint("Writing bank %x\r\n", rawAddress);
+            debugPrint("Writing .");
             IoOutputByte(XENIUM_REGISTER_BANKING, XENIUM_BANK_1_1024);
             bankSize = 0x100000;
             
         } else if (rawAddress == 0x100000) {
-            debugPrint("Writing bank %x\r\n", rawAddress);
+            debugPrint(".");
             IoOutputByte(XENIUM_REGISTER_BANKING, XENIUM_BANK_XENIUMOS);
             bankSize = 0x80000;
             
         } else if (rawAddress == 0x180000) {
-            debugPrint("Writing bank %x\r\n", rawAddress);
+            debugPrint(".");
             IoOutputByte(XENIUM_REGISTER_BANKING, XENIUM_BANK_CROMWELL);
             bankSize = 0x40000;
             
         } else if (rawAddress == 0x1C0000) {
-            debugPrint("Writing bank %x\r\n", rawAddress);
+            debugPrint(". ");
             IoOutputByte(XENIUM_REGISTER_BANKING, XENIUM_BANK_RECOVERY);
             bankSize = 0x40000;
         }
@@ -451,7 +447,7 @@ void writeXeniumRaw(unsigned char * buffer) {
             char str[] = "Complete: XXX%";
             sprintf(str, "Complete: %3u%%",
                 (unsigned char)((float)(rawAddress + bankAddress) / (float) XENIUM_FLASH_SIZE * 100.0));
-            debugPrintXY(str, 25, 480 - 50 - 8 - 12); //Second from bottom row.
+            debugPrintXY(str, 25, SCREEN_HEIGHT - 50 - 2 * 16); //Screen height-margins-2*font height
         }
     }
 }

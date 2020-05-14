@@ -23,15 +23,10 @@
 
 #define LPCFlashAddress 0xFF000000u
 
-unsigned char LPCmemoryReadByte(unsigned long address);
 void LPCmemoryRead(unsigned char* rxbuff, unsigned long address, unsigned long len);
 void LPCmemoryWrite(unsigned long address, unsigned char data);
-void flashSectorErase(unsigned char sector);
+void flashSectorErase(unsigned long sector_address);
 void flashFullErase(void);
-void flashReset(void);
-void flashProgramUnlock(void);
-void flashProgramBypass(unsigned long startAddress, unsigned char* data, unsigned long len);
-void flashProgramLock(void);
 void flashProgramByte(unsigned long address, unsigned char data);
 unsigned char getManufID(void);
 unsigned char getDevID(void);

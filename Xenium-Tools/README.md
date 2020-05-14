@@ -16,8 +16,7 @@ Whilst these tools will work for a genuine Xenium and OpenXenium, it is only rec
 
 ## Building
  * Install [NXDK](https://github.com/XboxDev/nxdk) and its dependencies.
- * Install cmake.  i.e. `sudo apt-get install cmake`.
- * Make sure that the NXDK_DIR variable in the Makefile points to correct place.
+ * Set NXDK_DIR path `export NXDK_DIR=/path/to/nxdk`
  * Compile xenium-tools using `make` from within the xenium-tools directory.
  * This will generate an xbe which you need to transfer to your Xbox.
 

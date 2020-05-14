@@ -1,4 +1,6 @@
 /.release/
+/Xenium-Tools/bin
+/Xenium-Tools/.vscode
 
 # Prerequisites
 *.d
@@ -36,6 +38,7 @@
 *.app
 *.i*86
 *.x86_64
+*.iso
 
 # Debug files
 *.dSYM/

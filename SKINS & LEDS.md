@@ -11,18 +11,18 @@ An example might look like this:
 
 
 ```
-9abcde //Text Box - Font Colour
-9abcde //Text Box - Fill Colour
-9abcde //Text Box - Border Colour and Selection Box Fill
-9abcde //??
-9abcde //Menus - Font Colour
-9abcde //Menus - Text Selection Box Fill
-9abcde //File Explorer - Background
-80     //?
-153    //?
-300    //?
-256    //?
-8      //?
+9abcde //Text Box - Text Colour
+9abcde //Text Box - Background Colour
+9abcde //Text Box - Border Colour 
+9abcde //Text Box - Text Selection Highlight Colour
+9abcde //Menus - Text Colour
+9abcde //Menus - Text Selection Highlight Colour
+9abcde //File Explorer - Background Colour
+80     //Top Menu - X Position
+153    //Top Menu - Y Position
+300    //Top Menu - Width
+256    //Top Menu - Height
+8      //Top Menu - No. Items to Display
 
 ```
  See the `releases` section for an example skin I put together:

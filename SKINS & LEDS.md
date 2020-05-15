@@ -5,8 +5,8 @@ XeniumOS supports custom skins and LED PWM patterns. The PWM test patterns are o
 
 ## Skins
 Skins require a 640x480 jpg file named `backdrop.jpg` with an associated `Skin.cfg`.  
-`Skin.cfg` configures the colour of the text, and menu objects etc. Each line represends a 6 digit HEX colour value. Lines marked with ? are unknown to me.  
-The comments in this example are provided for clarify only and **must** be removed before attempting to load the skin in XeniumOS.<br><br>
+`Skin.cfg` configures the colour of the text, and menu objects etc. These lines represent a six digit HEX colour value.
+The comments in this example are provided for clarity only and **must** be removed before attempting to load the skin in XeniumOS.<br><br>
 An example might look like this:
 
 

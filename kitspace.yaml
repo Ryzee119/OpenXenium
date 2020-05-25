@@ -1,1 +1,7 @@
 gerbers: Hardware/Gerbers
+summary: This is an open source recreation of an Original Xbox LPC memory/IO device based of the Xenium Modchip by Team Xodus
+color: blue
+eda:
+  type: eagle
+  pcb: Hwardware/Xenium2019.brd
+site: https://github.com/Ryzee119/OpenXenium

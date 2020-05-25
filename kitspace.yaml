@@ -1,4 +1,5 @@
 gerbers: Hardware/Gerbers
+bom: Hardware/bom.csv
 summary: This is an open source recreation of an Original Xbox LPC memory/IO device based of the Xenium Modchip by Team Xodus
 color: blue
 eda:

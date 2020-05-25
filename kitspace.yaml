@@ -1,4 +1,4 @@
-gerbers: Hardware/Gerbers
+gerbers: Hardware/Gerbers/GerberFiles
 bom: Hardware/bom.csv
 color: blue
 eda:

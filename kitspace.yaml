@@ -1,7 +1,4 @@
 gerbers: Hardware/Gerbers
 bom: Hardware/bom.csv
 color: blue
-eda:
-  type: eagle
-  pcb: Hardware/Xenium2019.brd
 site: https://github.com/Ryzee119/OpenXenium

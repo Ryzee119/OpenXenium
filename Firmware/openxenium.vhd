@@ -319,27 +319,11 @@ PROCESS (LPC_CLK, LPC_RST) BEGIN
             COUNT <= COUNT - 1; 
  
          --MEMORY OR IO WRITES. These all happen lower nibble first. (Refer to Intel LPC spec)
-         WHEN WRITE_DATA0 => 
-            IF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
-               REG_00EE_WRITE(3 DOWNTO 0) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
-               REG_00EF_WRITE(3 DOWNTO 0) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(15 DOWNTO 0) = SMARTXX_LCD THEN
-               LCD_DATA_BYTE(3 DOWNTO 0) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = MEM_WRITE THEN
-               sFLASH_DQ(3 DOWNTO 0) <= LPC_LAD;
-            END IF;
+         WHEN WRITE_DATA0 =>
+            READBUFFER(3 DOWNTO 0) <= LPC_LAD;
             LPC_CURRENT_STATE <= WRITE_DATA1;
-         WHEN WRITE_DATA1 => 
-            IF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
-               REG_00EE_WRITE(7 DOWNTO 4) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
-               REG_00EF_WRITE(7 DOWNTO 4) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(15 DOWNTO 0) = SMARTXX_LCD THEN
-               LCD_DATA_BYTE(7 DOWNTO 4) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = MEM_WRITE THEN
-               sFLASH_DQ(7 DOWNTO 4) <= LPC_LAD;
-            END IF;
+         WHEN WRITE_DATA1 =>
+            READBUFFER(7 DOWNTO 4) <= LPC_LAD;
             LPC_CURRENT_STATE <= TAR1;
 
          --MEMORY OR IO READS
@@ -363,6 +347,16 @@ PROCESS (LPC_CLK, LPC_RST) BEGIN
             IF COUNT = 1 THEN
                IF CYCLE_TYPE = MEM_READ THEN
                   READBUFFER <= FLASH_DQ;
+               ELSIF CYCLE_TYPE = MEM_WRITE THEN
+                  sFLASH_DQ <= READBUFFER;
+               ELSIF CYCLE_TYPE = IO_WRITE THEN
+                  IF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
+                     REG_00EE_WRITE <= READBUFFER;
+                  ELSIF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
+                     REG_00EF_WRITE <= READBUFFER;
+                  ELSIF LPC_ADDRESS(15 DOWNTO 0) = SMARTXX_LCD THEN
+                     LCD_DATA_BYTE <= READBUFFER;
+                  END IF;
                ELSIF CYCLE_TYPE = IO_READ THEN
                   IF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
                      READBUFFER <= REG_00EF_READ;

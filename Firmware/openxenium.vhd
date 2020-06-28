@@ -66,6 +66,7 @@
 --**0xEE (READ)**
 --Just returns 0x55 on a real xenium?
 -- 
+--Ref 1. SmartXX LT OPX Software Developer Documentation (SmartXX_lt_opx_public.pdf)
  
 LIBRARY IEEE;
 USE IEEE.STD_LOGIC_1164.ALL;
@@ -91,7 +92,12 @@ ENTITY openxenium IS
       LPC_RST : IN STD_LOGIC;
 
       XENIUM_RECOVERY : IN STD_LOGIC; -- Recovery is active low and requires an external Pull-up to 3.3V
-      XENIUM_D0 : OUT STD_LOGIC
+      XENIUM_D0 : OUT STD_LOGIC;
+     
+      --HD44780 LCD Pins
+      LCD_DATA: out STD_LOGIC_VECTOR (3 DOWNTO 0);
+      LCD_RS: out STD_LOGIC;
+      LCD_E: out STD_LOGIC
    );
 
 END openxenium;
@@ -148,6 +154,11 @@ ARCHITECTURE Behavioral OF openxenium IS
    --GENERIC COUNTER USED TO TRACK ADDRESS AND SYNC COUNTERS.
    SIGNAL COUNT : INTEGER RANGE 0 TO 7;
 
+   --HD44780 LCD DATABYTE (F700h)
+   --0,D6,D7,D4,D5,E,RS,0 from MSB to LSB, See Ref 1 Table 1.
+   CONSTANT SMARTXX_LCD : STD_LOGIC_VECTOR (15 DOWNTO 0) := x"F700"; --LCD WRITE 
+   SIGNAL LCD_DATA_BYTE: STD_LOGIC_VECTOR ( 7 downto 0 ) := "00000000";
+
 BEGIN
    --ASSIGN THE IO TO SIGNALS BASED ON REQUIRED BEHAVIOUR
    --HEADER_CS <= REG_00EF(5); Really need to put this back in somehow. 100% full :(
@@ -159,6 +170,15 @@ BEGIN
    HEADER_LED_B <= REG_00EE_WRITE(2);
 
    FLASH_ADDRESS <= LPC_ADDRESS;
+
+   --LCD Data has this format
+   --X,D6,D7,D4,D5,E,RS,X in that order. See Ref 1.
+   LCD_RS <= LCD_DATA_BYTE(1);
+   LCD_E <= LCD_DATA_BYTE(2);
+   LCD_DATA(0) <= LCD_DATA_BYTE(4);
+   LCD_DATA(1) <= LCD_DATA_BYTE(3);
+   LCD_DATA(2) <= LCD_DATA_BYTE(6);
+   LCD_DATA(3) <= LCD_DATA_BYTE(5);
 
    --LAD lines can be either input or output
    --The output values depend on variable states of the LPC transaction
@@ -215,6 +235,7 @@ PROCESS (LPC_CLK, LPC_RST) BEGIN
       D0LEVEL <= TSOPBOOT;
       LPC_CURRENT_STATE <= WAIT_START;
       CYCLE_TYPE <= IO_READ;
+      LCD_DATA_BYTE <= "00000000";
   
    ELSIF (rising_edge(LPC_CLK)) THEN 
       CASE LPC_CURRENT_STATE IS
@@ -303,6 +324,8 @@ PROCESS (LPC_CLK, LPC_RST) BEGIN
                REG_00EE_WRITE(3 DOWNTO 0) <= LPC_LAD;
             ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
                REG_00EF_WRITE(3 DOWNTO 0) <= LPC_LAD;
+            ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(15 DOWNTO 0) = SMARTXX_LCD THEN
+               LCD_DATA_BYTE(3 DOWNTO 0) <= LPC_LAD;
             ELSIF CYCLE_TYPE = MEM_WRITE THEN
                sFLASH_DQ(3 DOWNTO 0) <= LPC_LAD;
             END IF;
@@ -312,6 +335,8 @@ PROCESS (LPC_CLK, LPC_RST) BEGIN
                REG_00EE_WRITE(7 DOWNTO 4) <= LPC_LAD;
             ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
                REG_00EF_WRITE(7 DOWNTO 4) <= LPC_LAD;
+            ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(15 DOWNTO 0) = SMARTXX_LCD THEN
+               LCD_DATA_BYTE(7 DOWNTO 4) <= LPC_LAD;
             ELSIF CYCLE_TYPE = MEM_WRITE THEN
                sFLASH_DQ(7 DOWNTO 4) <= LPC_LAD;
             END IF;

@@ -135,7 +135,7 @@ ARCHITECTURE Behavioral OF openxenium IS
    SIGNAL REG_00EF_WRITE : STD_LOGIC_VECTOR (7 DOWNTO 0) := "00000001"; --X,SCK,CS,MOSI, BANKCONTROL[3:0]. Bank 1 is default.
    SIGNAL REG_00EF_READ : STD_LOGIC_VECTOR (7 DOWNTO 0) := "01010101"; --Input signal
    SIGNAL REG_00EE_READ : STD_LOGIC_VECTOR (7 DOWNTO 0) := "01010101"; --Input signal
-   SIGNAL READBUFFER : STD_LOGIC_VECTOR (7 DOWNTO 0); --I buffer Memory and IO reads to reduce pin to pin delay in CPLD which caused issues
+   SIGNAL IOBUFFER : STD_LOGIC_VECTOR (7 DOWNTO 0); --I buffer Memory and IO reads to reduce pin to pin delay in CPLD which caused issues
  
    --R/W SIGNAL FOR FLASH MEMORY
    SIGNAL sFLASH_DQ : STD_LOGIC_VECTOR (7 DOWNTO 0) := "ZZZZZZZZ";
@@ -167,8 +167,8 @@ BEGIN
               "0101" WHEN LPC_CURRENT_STATE = SYNCING ELSE
               "1111" WHEN LPC_CURRENT_STATE = TAR2 ELSE
               "1111" WHEN LPC_CURRENT_STATE = TAR_EXIT ELSE
-              READBUFFER(3 DOWNTO 0) WHEN LPC_CURRENT_STATE = READ_DATA0 ELSE --This has to be lower nibble first!
-              READBUFFER(7 DOWNTO 4) WHEN LPC_CURRENT_STATE = READ_DATA1 ELSE 
+              IOBUFFER(3 DOWNTO 0) WHEN LPC_CURRENT_STATE = READ_DATA0 ELSE --This has to be lower nibble first!
+              IOBUFFER(7 DOWNTO 4) WHEN LPC_CURRENT_STATE = READ_DATA1 ELSE 
               "ZZZZ";
 
    --FLASH_DQ is mapped to the data byte sent by the Xbox in MEM_WRITE mode, else its just an input
@@ -299,22 +299,10 @@ PROCESS (LPC_CLK, LPC_RST) BEGIN
  
          --MEMORY OR IO WRITES. These all happen lower nibble first. (Refer to Intel LPC spec)
          WHEN WRITE_DATA0 => 
-            IF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
-               REG_00EE_WRITE(3 DOWNTO 0) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
-               REG_00EF_WRITE(3 DOWNTO 0) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = MEM_WRITE THEN
-               sFLASH_DQ(3 DOWNTO 0) <= LPC_LAD;
-            END IF;
+            IOBUFFER(3 DOWNTO 0) <= LPC_LAD;
             LPC_CURRENT_STATE <= WRITE_DATA1;
          WHEN WRITE_DATA1 => 
-            IF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
-               REG_00EE_WRITE(7 DOWNTO 4) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
-               REG_00EF_WRITE(7 DOWNTO 4) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = MEM_WRITE THEN
-               sFLASH_DQ(7 DOWNTO 4) <= LPC_LAD;
-            END IF;
+            IOBUFFER(7 DOWNTO 4) <= LPC_LAD;
             LPC_CURRENT_STATE <= TAR1;
 
          --MEMORY OR IO READS
@@ -323,7 +311,6 @@ PROCESS (LPC_CLK, LPC_RST) BEGIN
          WHEN READ_DATA1 => 
             LPC_CURRENT_STATE <= TAR_EXIT; 
  
-
          --TURN BUS AROUND (HOST TO PERIPHERAL)
          WHEN TAR1 => 
             LPC_CURRENT_STATE <= TAR2;
@@ -334,17 +321,25 @@ PROCESS (LPC_CLK, LPC_RST) BEGIN
          --SYNCING STAGE
          WHEN SYNCING =>
             COUNT <= COUNT - 1;    
-            --Buffer IO reads during syncing. Helps output timings
+            --Buffer IO/memory during syncing. Helps output timings
             IF COUNT = 1 THEN
                IF CYCLE_TYPE = MEM_READ THEN
-                  READBUFFER <= FLASH_DQ;
+                  IOBUFFER <= FLASH_DQ;
+               ELSIF CYCLE_TYPE = MEM_WRITE THEN
+                  sFLASH_DQ <= IOBUFFER;
+               ELSIF CYCLE_TYPE = IO_WRITE THEN
+                  IF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
+                     REG_00EE_WRITE <= IOBUFFER;
+                  ELSIF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
+                     REG_00EF_WRITE <= IOBUFFER;
+                  END IF;
                ELSIF CYCLE_TYPE = IO_READ THEN
                   IF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
-                     READBUFFER <= REG_00EF_READ;
+                     IOBUFFER <= REG_00EF_READ;
                   ELSIF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
-                     READBUFFER <= REG_00EE_READ;
+                     IOBUFFER <= REG_00EE_READ;
                   ELSE
-                     READBUFFER <= "11111111";
+                     IOBUFFER <= "11111111";
                   END IF;
                END IF;
            ELSIF COUNT = 0 THEN

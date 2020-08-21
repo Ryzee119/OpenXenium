@@ -1,4 +1,0 @@
-gerbers: Hardware/Gerbers
-bom: Hardware/bom.csv
-color: blue
-site: https://github.com/Ryzee119/OpenXenium

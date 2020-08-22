@@ -1,0 +1,4 @@
+gerbers: .kitspace
+bom: .kitspace
+color: blue
+site: https://github.com/Ryzee119/OpenXenium

@@ -1,6 +1,8 @@
 # OpenXenium PCB.
 This board was designed using [Autodesk Eagle](https://www.autodesk.com/products/eagle/overview). You can edit the `.brd` and `.sch` with this program.
 
+You can order via KitSpace: https://kitspace.org/boards/github.com/ryzee119/openxenium/.
+
 ## Printed Circuit Board
 When fabricating your own, you can download the premade gerbers from the `Release` section or generate your own. Suggested PCB properties are:  <br>
 *2 layers, 40x37mm, 1.6mm thick, HASL, 1oz copper, no castellated holes, any colour you want!*<br>

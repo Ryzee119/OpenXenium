@@ -1,7 +1,7 @@
 # Installation
 
 ## Program CPLD (If building it yourself)
-1. To program the CPLD see the `Firmware` page. Some programming notes are provided below:  
+1. To program the CPLD see the [Firmware](./Firmware/README.md). page. Some programming notes are provided below:  
 1.1 You will need a good quality JTAG programmer with the ability to parse`.svf` files. Some universal JTAG programming software is `OpenOCD` or `URJtag`. Check these for compatible programmers.  
 1.2 The JTAG connection points are located along the edge of the OpenXenium PCB and are clearly labelled on the silkscreen.  
 1.3 OpenXenium may require an external 3.3V power supply when programming. The RGB LED should be on when programming.  
@@ -9,13 +9,13 @@
 
 ## Programming XeniumOS to OpenXenium (If building it yourself)
 1. Confirm that the CPLD is programmed as per the above section.
-2. Boot your Xbox using another bootable modchip and transfer `xenium-tools.xbe` to your xbox. You must boot the Xbox using another modchip. Booting from the onboard TSOP will prevent xenium-tools from working.
+2. Boot your Xbox using another bootable modchip and transfer `default.xbe` from [Xenium-Tools repo](https://github.com/Ryzee119/Xenium-Tools/releases) to your xbox. You must boot the Xbox using another modchip. Booting from the onboard TSOP will prevent xenium-tools from working.
 3. Transfer over a xenium 2MB raw `flash.bin` **or** XeniumOS 2.3.1 `recovery.bin` (v2.3.1 only) to the xenium-tools directory.  `flash.bin` is full Xenium flash memory dump obtained from a Genuine Xenium device using xenium-tools (Menu option START+X). This is the recommended file to use as it contains the recovery sector which allows the recovery feature to work on an OpenXenium. 
-4. Open `xenium-tools.xbe`. The main menu looks like this <br> ![xenium-tools main menu](https://github.com/Ryzee119/OpenXenium/blob/master/Images/xenium-tools_mainmenu.png?raw=true)
+4. Open the Xenium-Tools xbe. The main menu looks like this <br> <p align="center"><img src="./Images/xenium-tools_mainmenu.png" alt="xtools main menu" width="60%"/></p>
 5. At the main menu, carefully remove the current modchip and replace it with an OpenXenium. Hotswapping is not ideal and so great care should be taken to not drop anything into the Xbox and triple checking pin header alignment before commiting to pushing it onto the header.
-6. Press the BACK button to confirm that xenium-tools can now detect your OpenXenium. Also press A to toggle the RGB LED. This provides some confidence that the unit is functional. If this doesn't work, confirm you have programmed the CPLD with the OpenXenium firmware and you have installed it correctly on the header.
-7. Press START+B or START+Y to program `flash.bin` or `recovery.bin` respectively to the OpenXenium.
-8. On completion is should look like something like this <br> ![xenium-tools write raw](https://github.com/Ryzee119/OpenXenium/blob/master/Images/xenium-tools_writeraw.png?raw=true)
+6. Select `Rescan for Xenium` to confirm it can detect your OpenXenium. If this doesn't work, confirm you have programmed the CPLD with the OpenXenium firmware (RGB LED should default to red) and you have installed it correctly on the header.
+7. Selected  `Write a Raw 2MB Flash Dump` or `Write XeniumOS 2.3.1 Update` accordingly.
+8. Confirm no errors are shown.
 
 ## OpenXenium Installation in Xbox
 1. The following steps assume you have an assembled OpenXenium and have programmed the CPLD and programmed XeniumOS as per the above sections.

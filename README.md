@@ -12,6 +12,8 @@ My own VHDL is probably quite similar to what Team Xodus produced for the Xenium
 
 I do a quick run through of the build process here: https://youtu.be/P6YYViKby74
 
+To manage your OpenXenium device's flash memory, the Xenium-Tools homebrew program has been moved [here](https://github.com/Ryzee119/Xenium-Tools).
+
 ## Supported Features
 The VHDL implements the following LPC transactions:
   * Memory Read/Writes (Translated to a parallel flash memory interface)
@@ -32,15 +34,8 @@ When used with XeniumOS the VHDL in this repo supports the following features:
   * If you bridge the two recovery pins on power up, it will attempt to boot the XeniumOS recovery BIOS if available. This functions the same as a genuine Xenium modchip.
   * I also simulate the LFRAME abort mechanism (*Ref Intel LPC Interface Spec Rev 1.1 Section 4.3.1.13*) so that this will work on a v1.6 Original Xbox. This aborts the LPC transaction to prevent the Xyclops responding to the MCPX LPC Memory Read requests during boot (and conflicting with an external LPC memory peripheral). This is generally accepted to be better than shorting LFRAME the ground constantly which some traditional *Modchips* do.
 
-## Folder Structure
-`Firmware` - Contains the VHDL and constraint files to synthesize the design using [Xilinx ISE Design Suite 14.7](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/design-tools.html) to generate a JEDEC or SVF file for programming.  
-`Hardware` - Contains the PCB Files (Created with [Autodesk Eagle](https://www.autodesk.com/products/eagle/overview)) and bill of materials information to build your own.  
-`Xenium-Tools` - Contains a custom XBE (Created with [NXDK](https://github.com/XboxDev/nxdk)) to dump the flash contents of Xenium based devices, parse Xenium update files or write a raw flash dump to a OpenXenium/Genuine Xenium and some other Xenium related things.
-
 ## XeniumOS BIOS
-The final XeniumOS release supposedly contained no GPL code therefore was never open sourced and presumably never licensed for other hardware (clones). Consequently, although it is claimed to not contain any Microsoft code; **XeniumOS** is still property of Team Xodus, so I believe it cannot be included in this repo.
-
-**The recommended way to get a copy of XeniumOS is to take a backup of your own Xenium modchip using `xenium-tools` provided in this repo.** It is also possible to parse the v2.3.1 XeniumOS update files released by Team Xodus to extract the neccessary data; however this will not contain the factory programmed recovery sector, but otherwise works in the same way.
+**The recommended way to get a copy of XeniumOS is to take a backup of your own Xenium modchip using [Xenium-Tools](https://github.com/Ryzee119/Xenium-Tools/releases).** It is also possible to parse the v2.3.1 XeniumOS update files released by Team Xodus to extract the neccessary data; however this will not contain the factory programmed recovery sector, but otherwise works in the same way.
 
 This has been tested with XeniumOS 2.3.1 (Last release) and XeniumOS 2.3.1(Gold variant). The only way to obtain Gold OS is to dump the flash contents of your XeniumGold as the binary files were never distributed individually.
 

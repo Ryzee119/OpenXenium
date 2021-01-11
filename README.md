@@ -12,7 +12,7 @@ My own VHDL is probably quite similar to what Team Xodus produced for the Xenium
 
 I do a quick run through of the build process here: https://youtu.be/P6YYViKby74
 
-To manage your OpenXenium device's flash memory, the [Xenium-Tools](https://github.com/Ryzee119/Xenium-Tools) homebrew program has been moved (here){https://github.com/Ryzee119/Xenium-Tools}.
+To manage your OpenXenium device's flash memory, the Xenium-Tools homebrew program has been moved [here](https://github.com/Ryzee119/Xenium-Tools).
 
 ## Supported Features
 The VHDL implements the following LPC transactions:
@@ -35,7 +35,7 @@ When used with XeniumOS the VHDL in this repo supports the following features:
   * I also simulate the LFRAME abort mechanism (*Ref Intel LPC Interface Spec Rev 1.1 Section 4.3.1.13*) so that this will work on a v1.6 Original Xbox. This aborts the LPC transaction to prevent the Xyclops responding to the MCPX LPC Memory Read requests during boot (and conflicting with an external LPC memory peripheral). This is generally accepted to be better than shorting LFRAME the ground constantly which some traditional *Modchips* do.
 
 ## XeniumOS BIOS
-**The recommended way to get a copy of XeniumOS is to take a backup of your own Xenium modchip using `xenium-tools` provided in this repo.** It is also possible to parse the v2.3.1 XeniumOS update files released by Team Xodus to extract the neccessary data; however this will not contain the factory programmed recovery sector, but otherwise works in the same way.
+**The recommended way to get a copy of XeniumOS is to take a backup of your own Xenium modchip using [Xenium-Tools](https://github.com/Ryzee119/Xenium-Tools/releases).** It is also possible to parse the v2.3.1 XeniumOS update files released by Team Xodus to extract the neccessary data; however this will not contain the factory programmed recovery sector, but otherwise works in the same way.
 
 This has been tested with XeniumOS 2.3.1 (Last release) and XeniumOS 2.3.1(Gold variant). The only way to obtain Gold OS is to dump the flash contents of your XeniumGold as the binary files were never distributed individually.
 

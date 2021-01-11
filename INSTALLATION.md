@@ -9,9 +9,9 @@
 
 ## Programming XeniumOS to OpenXenium (If building it yourself)
 1. Confirm that the CPLD is programmed as per the above section.
-2. Boot your Xbox using another bootable modchip and transfer `default.xbe` from [Xenium-Tools repo](https://github.com/Ryzee119/Xenium-Tools) to your xbox. You must boot the Xbox using another modchip. Booting from the onboard TSOP will prevent xenium-tools from working.
+2. Boot your Xbox using another bootable modchip and transfer `default.xbe` from [Xenium-Tools repo](https://github.com/Ryzee119/Xenium-Tools/releases) to your xbox. You must boot the Xbox using another modchip. Booting from the onboard TSOP will prevent xenium-tools from working.
 3. Transfer over a xenium 2MB raw `flash.bin` **or** XeniumOS 2.3.1 `recovery.bin` (v2.3.1 only) to the xenium-tools directory.  `flash.bin` is full Xenium flash memory dump obtained from a Genuine Xenium device using xenium-tools (Menu option START+X). This is the recommended file to use as it contains the recovery sector which allows the recovery feature to work on an OpenXenium. 
-4. Open the Xenium-Tools xbe. The main menu looks like this <br> <p align="center"><img src="../images/xenium-tools_mainmenu.png" alt="xtools main menu" width="100%"/></p>
+4. Open the Xenium-Tools xbe. The main menu looks like this <br> <p align="center"><img src="./Images/xenium-tools_mainmenu.png" alt="xtools main menu" width="60%"/></p>
 5. At the main menu, carefully remove the current modchip and replace it with an OpenXenium. Hotswapping is not ideal and so great care should be taken to not drop anything into the Xbox and triple checking pin header alignment before commiting to pushing it onto the header.
 6. Select `Rescan for Xenium` to confirm it can detect your OpenXenium. If this doesn't work confirmyou have programmed the CPLD with the OpenXenium firmware and you have installed it correctly on the header.
 7. Selected  `Write a Raw 2MB Flash Dump` or `Write XeniumOS 2.3.1 Update` accordingly.

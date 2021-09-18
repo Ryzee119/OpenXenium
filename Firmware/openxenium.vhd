@@ -102,8 +102,7 @@ ARCHITECTURE Behavioral OF openxenium IS
    WAIT_START, 
    CYCTYPE_DIR, 
    ADDRESS, 
-   WRITE_DATA0, 
-   WRITE_DATA1, 
+   WRITE_DATA,  
    READ_DATA0, 
    READ_DATA1, 
    TAR1, 
@@ -123,18 +122,16 @@ ARCHITECTURE Behavioral OF openxenium IS
    SIGNAL LPC_CURRENT_STATE : LPC_STATE_MACHINE;
    SIGNAL CYCLE_TYPE : CYC_TYPE;
 
-   SIGNAL LPC_ADDRESS : STD_LOGIC_VECTOR (20 DOWNTO 0); --LPC Address is actually 32bits for memory IO, but we only need 20.
+   SIGNAL LPC_ADDRESS : STD_LOGIC_VECTOR (20 DOWNTO 0); --LPC Address is actually 32bits for memory IO, but we only need 21.
 
    --XENIUM IO REGISTERS. BITS MARKED 'X' HAVE AN UNKNOWN FUNCTION OR ARE UNUSED. NEEDS MORE RE.
    --Bit masks are all shown upper nibble first.
  
    --IO WRITE/READ REGISTERS SIGNALS
-   CONSTANT XENIUM_00EE : STD_LOGIC_VECTOR (7 DOWNTO 0) := x"EE"; --CONSTANT (RGB LED Control Register)
-   CONSTANT XENIUM_00EF : STD_LOGIC_VECTOR (7 DOWNTO 0) := x"EF"; --CONSTANT (SPI and Banking Control Register)
+   CONSTANT REG_00EE_READ : STD_LOGIC_VECTOR (7 DOWNTO 0) := "01010101"; -- Genuine Xenium
    SIGNAL REG_00EE_WRITE : STD_LOGIC_VECTOR (7 DOWNTO 0) := "00000001"; --X,X,X,X X,B,G,R. Red is default LED colour
    SIGNAL REG_00EF_WRITE : STD_LOGIC_VECTOR (7 DOWNTO 0) := "00000001"; --X,SCK,CS,MOSI, BANKCONTROL[3:0]. Bank 1 is default.
    SIGNAL REG_00EF_READ : STD_LOGIC_VECTOR (7 DOWNTO 0) := "01010101"; --Input signal
-   SIGNAL REG_00EE_READ : STD_LOGIC_VECTOR (7 DOWNTO 0) := "01010101"; --Input signal
    SIGNAL READBUFFER : STD_LOGIC_VECTOR (7 DOWNTO 0); --I buffer Memory and IO reads to reduce pin to pin delay in CPLD which caused issues
  
    --R/W SIGNAL FOR FLASH MEMORY
@@ -150,7 +147,7 @@ ARCHITECTURE Behavioral OF openxenium IS
 
 BEGIN
    --ASSIGN THE IO TO SIGNALS BASED ON REQUIRED BEHAVIOUR
-   --HEADER_CS <= REG_00EF(5); Really need to put this back in somehow. 100% full :(
+   --HEADER_CS <= REG_00EF_WRITE(5);   -- Really need to put this back in somehow. 100% full :(
    HEADER_SCK <= REG_00EF_WRITE(6);
    HEADER_MOSI <= REG_00EF_WRITE(4);
 
@@ -207,15 +204,14 @@ BEGIN
  
    REG_00EF_READ <= XENIUM_RECOVERY & '0' & HEADER_4 & HEADER_1 & REG_00EF_WRITE(3 DOWNTO 0);
 
-PROCESS (LPC_CLK, LPC_RST) BEGIN
+PROCESS (LPC_CLK, LPC_RST, TSOPBOOT) BEGIN
 
    IF (LPC_RST = '0') THEN
       --LPC_RST goes low during boot up or hard reset.
       --We need to set D0 only if not TSOP booting.
       D0LEVEL <= TSOPBOOT;
       LPC_CURRENT_STATE <= WAIT_START;
-      CYCLE_TYPE <= IO_READ;
-  
+
    ELSIF (rising_edge(LPC_CLK)) THEN 
       CASE LPC_CURRENT_STATE IS
          WHEN WAIT_START => 
@@ -223,28 +219,28 @@ PROCESS (LPC_CLK, LPC_RST) BEGIN
                LPC_CURRENT_STATE <= CYCTYPE_DIR;
             END IF;
          WHEN CYCTYPE_DIR => 
+         
+            LPC_CURRENT_STATE <= ADDRESS;
+            
             IF LPC_LAD(3 DOWNTO 1) = "000" THEN
                CYCLE_TYPE <= IO_READ;
                COUNT <= 3;
-               LPC_CURRENT_STATE <= ADDRESS; 
             ELSIF LPC_LAD(3 DOWNTO 1) = "001" THEN
                CYCLE_TYPE <= IO_WRITE;
                COUNT <= 3;
-               LPC_CURRENT_STATE <= ADDRESS;
             ELSIF LPC_LAD(3 DOWNTO 1) = "010" THEN
                CYCLE_TYPE <= MEM_READ;
                COUNT <= 7;
-               LPC_CURRENT_STATE <= ADDRESS;
             ELSIF LPC_LAD(3 DOWNTO 1) = "011" THEN
                CYCLE_TYPE <= MEM_WRITE;
                COUNT <= 7;
-               LPC_CURRENT_STATE <= ADDRESS;
             ELSE
                LPC_CURRENT_STATE <= WAIT_START; -- Unsupported, reset state machine.
             END IF;
  
          --ADDRESS GATHERING
          WHEN ADDRESS => 
+
             IF COUNT = 5 THEN
                LPC_ADDRESS(20) <= LPC_LAD(0);
             ELSIF COUNT = 4 THEN
@@ -289,40 +285,71 @@ PROCESS (LPC_CLK, LPC_RST) BEGIN
                LPC_ADDRESS(7 DOWNTO 4) <= LPC_LAD;
             ELSIF COUNT = 0 THEN
                LPC_ADDRESS(3 DOWNTO 0) <= LPC_LAD;
-               IF CYCLE_TYPE = IO_READ OR CYCLE_TYPE = MEM_READ THEN
+      
+               LPC_CURRENT_STATE <= WAIT_START;
+               
+               -- catch unsupported IO read/writes here before they modify LAD
+               IF CYCLE_TYPE = MEM_READ THEN
                   LPC_CURRENT_STATE <= TAR1;
-               ELSIF CYCLE_TYPE = IO_WRITE OR CYCLE_TYPE = MEM_WRITE THEN
-                  LPC_CURRENT_STATE <= WRITE_DATA0;
+               ELSIF CYCLE_TYPE = MEM_WRITE THEN
+                  LPC_CURRENT_STATE <= WRITE_DATA;
+               ELSIF LPC_ADDRESS(7 DOWNTO 1) = x"77" THEN   -- check if supported Xenium register (EE or EF), the last bit is irrelevant
+               
+                  IF CYCLE_TYPE = IO_READ THEN
+                     LPC_CURRENT_STATE <= TAR1;
+                  ELSIF CYCLE_TYPE = IO_WRITE THEN
+                     LPC_CURRENT_STATE <= WRITE_DATA;
+                  END IF;
+
                END IF;
+      
+            END IF;
+            COUNT <= COUNT - 1;
+ 
+         -- MEMORY OR IO WRITES. These all happen lower nibble first. (Refer to Intel LPC spec)
+         -- HACK: abuses counter rollover from previous state
+         WHEN WRITE_DATA => 
+         
+            IF CYCLE_TYPE = MEM_WRITE THEN
+            
+               IF COUNT = 7 THEN
+                  sFLASH_DQ(3 DOWNTO 0) <= LPC_LAD;
+               ELSE
+                  sFLASH_DQ(7 DOWNTO 4) <= LPC_LAD;
+               END IF;
+               
+            ELSE
+
+               -- it's already been confirmed this is a supported Xenium register in a previous state
+               -- so only a single bit needs to be checked to differentiate between the two 
+               IF LPC_ADDRESS(0) = '0' THEN
+
+                  IF COUNT = 7 THEN
+                     REG_00EE_WRITE(3 DOWNTO 0) <= LPC_LAD;
+                  ELSE
+                     REG_00EE_WRITE(7 DOWNTO 4) <= LPC_LAD;
+                  END IF;
+               ELSE
+                  IF COUNT = 7 THEN
+                     REG_00EF_WRITE(3 DOWNTO 0) <= LPC_LAD;
+                  ELSE
+                     REG_00EF_WRITE(7 DOWNTO 4) <= LPC_LAD;
+                  END IF;
+
+               END IF;
+
+            END IF;
+            
+            IF COUNT = 6 THEN
+               LPC_CURRENT_STATE <= TAR1;
             END IF;
             COUNT <= COUNT - 1; 
- 
-         --MEMORY OR IO WRITES. These all happen lower nibble first. (Refer to Intel LPC spec)
-         WHEN WRITE_DATA0 => 
-            IF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
-               REG_00EE_WRITE(3 DOWNTO 0) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
-               REG_00EF_WRITE(3 DOWNTO 0) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = MEM_WRITE THEN
-               sFLASH_DQ(3 DOWNTO 0) <= LPC_LAD;
-            END IF;
-            LPC_CURRENT_STATE <= WRITE_DATA1;
-         WHEN WRITE_DATA1 => 
-            IF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
-               REG_00EE_WRITE(7 DOWNTO 4) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = IO_WRITE AND LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
-               REG_00EF_WRITE(7 DOWNTO 4) <= LPC_LAD;
-            ELSIF CYCLE_TYPE = MEM_WRITE THEN
-               sFLASH_DQ(7 DOWNTO 4) <= LPC_LAD;
-            END IF;
-            LPC_CURRENT_STATE <= TAR1;
 
          --MEMORY OR IO READS
          WHEN READ_DATA0 => 
             LPC_CURRENT_STATE <= READ_DATA1;
          WHEN READ_DATA1 => 
             LPC_CURRENT_STATE <= TAR_EXIT; 
- 
 
          --TURN BUS AROUND (HOST TO PERIPHERAL)
          WHEN TAR1 => 
@@ -338,13 +365,15 @@ PROCESS (LPC_CLK, LPC_RST) BEGIN
             IF COUNT = 1 THEN
                IF CYCLE_TYPE = MEM_READ THEN
                   READBUFFER <= FLASH_DQ;
+                  
                ELSIF CYCLE_TYPE = IO_READ THEN
-                  IF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EF THEN
-                     READBUFFER <= REG_00EF_READ;
-                  ELSIF LPC_ADDRESS(7 DOWNTO 0) = XENIUM_00EE THEN
+               
+                  -- it's already been confirmed this is a supported Xenium register in a previous state
+                  -- so only a single bit needs to be checked to differentiate between the two 
+                  IF LPC_ADDRESS(0) = '0' THEN
                      READBUFFER <= REG_00EE_READ;
                   ELSE
-                     READBUFFER <= "11111111";
+                     READBUFFER <= REG_00EF_READ;
                   END IF;
                END IF;
            ELSIF COUNT = 0 THEN
@@ -365,7 +394,7 @@ PROCESS (LPC_CLK, LPC_RST) BEGIN
             IF LPC_ADDRESS(7 DOWNTO 0) = x"74" THEN
                D0LEVEL <= '1';
             END IF;
-            CYCLE_TYPE <= IO_READ;
+            
             LPC_CURRENT_STATE <= WAIT_START;
       END CASE;
    END IF;

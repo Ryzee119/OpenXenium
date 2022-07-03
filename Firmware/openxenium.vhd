@@ -395,6 +395,7 @@ PROCESS (LPC_CLK, LPC_RST, TSOPBOOT) BEGIN
                D0LEVEL <= '1';
             END IF;
             
+            CYCLE_TYPE <= IO_READ;
             LPC_CURRENT_STATE <= WAIT_START;
       END CASE;
    END IF;

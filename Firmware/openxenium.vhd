@@ -356,13 +356,13 @@ PROCESS (LPC_CLK, LPC_RST, TSOPBOOT) BEGIN
             LPC_CURRENT_STATE <= TAR2;
          WHEN TAR2 =>
             LPC_CURRENT_STATE <= SYNCING;
-            COUNT <= 6;
+            COUNT <= 2;
 
          --SYNCING STAGE
          WHEN SYNCING =>
             COUNT <= COUNT - 1;
             --Buffer IO reads during syncing. Helps output timings
-            IF COUNT = 1 THEN
+            IF COUNT = 0 THEN
                IF CYCLE_TYPE = MEM_READ THEN
                   READBUFFER <= FLASH_DQ;
 
@@ -376,7 +376,6 @@ PROCESS (LPC_CLK, LPC_RST, TSOPBOOT) BEGIN
                      READBUFFER <= REG_00EF_READ;
                   END IF;
                END IF;
-           ELSIF COUNT = 0 THEN
               LPC_CURRENT_STATE <= SYNC_COMPLETE;
            END IF;
          WHEN SYNC_COMPLETE =>

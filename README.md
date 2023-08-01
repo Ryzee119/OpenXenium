@@ -32,7 +32,7 @@ When used with XeniumOS the VHDL in this repo supports the following features:
   * Three outputs are connected to an RGB led (Or an external user added RGB led).
   * Reserved memory on the flash chip for non-volatile storage of an EEPROM backup and XeniumOS settings.
   * If you bridge the two recovery pins on power up, it will attempt to boot the XeniumOS recovery BIOS if available. This functions the same as a genuine Xenium modchip.
-  * I also simulate the LFRAME abort mechanism (*Ref Intel LPC Interface Spec Rev 1.1 Section 4.3.1.13*) so that this will work on a v1.6 Original Xbox. This aborts the LPC transaction to prevent the Xyclops responding to the MCPX LPC Memory Read requests during boot (and conflicting with an external LPC memory peripheral). This is generally accepted to be better than shorting LFRAME the ground constantly which some traditional *Modchips* do.
+  * I also simulate the LFRAME abort mechanism (*Ref Intel LPC Interface Spec Rev 1.1 Section 4.2.1.13*) so that this will work on a v1.6 Original Xbox. This aborts the LPC transaction to prevent the Xyclops responding to the MCPX LPC Memory Read requests during boot (and conflicting with an external LPC memory peripheral). This is generally accepted to be better than shorting LFRAME the ground constantly which some traditional *Modchips* do.
 
 ## XeniumOS BIOS
 **The recommended way to get a copy of XeniumOS is to take a backup of your own Xenium modchip using [Xenium-Tools](https://github.com/Ryzee119/Xenium-Tools/releases).** It is also possible to parse the v2.3.1 XeniumOS update files released by Team Xodus to extract the neccessary data; however this will not contain the factory programmed recovery sector, but otherwise works in the same way.
